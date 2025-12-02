@@ -1,0 +1,155 @@
+Multi-Container Setup: Node.js + MongoDB
+docker-compose.yml
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+
+  nodeapp:
+    build: .
+    container_name: node-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    restart: always
+Dockerfile
+FROM node:18
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+CMD ["node", "app.js"]
+app.js
+const express = require("express");
+const mongoose = require("mongoose");
+const app = express();
+
+mongoose.connect("mongodb://mongo:27017/testdb")
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log(err));
+
+app.get("/", (req, res) => {
+  res.send("Node + MongoDB is working!");
+});
+
+app.listen(3000, () => console.log("Server running on port 3000"));
+Run these before compose:
+npm init -y
+npm install express mongoose
+Start:
+docker-compose up --build
+Open:
+👉 http://localhost:3000/
+Multi-Container Setup: WordPress + MySQL
+version: "3.9"
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppassword
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress-app
+    depends_on:
+      - db
+    ports:
+      - "8080:80"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppassword
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+
+volumes:
+  db_data:
+  wordpress_data:
+Start:
+docker-compose up -d
+Open:
+👉 http://localhost:8080/
+Got it! Here is the **full correct answer** for Question **(d)**:
+
+> **Write the Dockerfile, create the Docker image, and access the image in localhost**
+I will show the example using a **simple HTML webpage** running through **Nginx**, because this is the most common question format for exams.
+(You can copy-paste directly in your answer sheet.)
+---
+## 📌 Step–1: Create a project folder
+```
+docker-web/
+```
+Inside it, create two files:
+---
+## 🧩 Step–2: Create `index.html`
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Docker Test Page</title>
+</head>
+<body>
+  <h1>Hello! Docker image is running on localhost</h1>
+</body>
+</html>
+```
+## 🛠 Step–3: Create `Dockerfile`
+
+```dockerfile
+FROM nginx:latest
+COPY index.html /usr/share/nginx/html/index.html
+EXPOSE 80
+```
+---
+## 🧱 Step–4: Build Docker Image
+Open terminal inside the folder and run:
+```bash
+docker build -t mywebimage .
+```
+✔ This creates an image named **mywebimage**
+Check image:
+```bash
+docker images
+```
+
+## ▶ Step–5: Run container & expose to localhost
+
+```bash
+docker run -d -p 8080:80 --name mywebcontainer mywebimage
+```
+---
+
+## 🌐 Step–6: Access in browser
+
+Open:
+
+```
+http://localhost:8080/
+```
+
+You will see:
+
+> **Hello! Docker image is running on localhost**
+
+
